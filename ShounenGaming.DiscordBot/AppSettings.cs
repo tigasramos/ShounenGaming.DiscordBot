@@ -24,5 +24,7 @@ namespace ShounenGaming.DiscordBot
     {
         public string Token { get; set; }
         public string Prefix { get; set; }
+        public string ServerId { get; set; }
+        public string ModsRoleId { get; set; }
     }
 }
