@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShounenGaming.DiscordBot
+namespace ShounenGaming.DiscordBot.Models
 {
-    internal class AppSettings
+    public class AppSettings
     {
         public ServerSettings Server { get; set; }
         public DiscordSettings Discord { get; set; }
     }
 
-    internal class ServerSettings
+    public class ServerSettings
     {
         public string Url { get; set; }
         public string Port { get; set; }
@@ -20,11 +20,9 @@ namespace ShounenGaming.DiscordBot
         public string BotPassword { get; set; }
     }
 
-    internal class DiscordSettings
+    public class DiscordSettings
     {
         public string Token { get; set; }
         public string Prefix { get; set; }
-        public string ServerId { get; set; }
-        public string ModsRoleId { get; set; }
     }
 }

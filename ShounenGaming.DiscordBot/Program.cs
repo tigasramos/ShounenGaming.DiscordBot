@@ -1,14 +1,14 @@
 ﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.Interactivity.Enums;
-using DSharpPlus.Interactivity.Extensions;
-using DSharpPlus.Interactivity;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using ShounenGaming.DiscordBot;
-using ShounenGaming.DiscordBot.Commands;
-using System.Reflection;
+using Refit;
+using ShounenGaming.DiscordBot.Server.Services;
+using ShounenGaming.DiscordBot.Handlers;
+using ShounenGaming.DiscordBot.Models;
+using ShounenGaming.DiscordBot.Helpers;
+using ShounenGaming.DiscordBot.Hubs;
 
 try
 {
@@ -22,11 +22,16 @@ try
     Log.Information("Starting ShounenGaming Discord Bot");
 
     var services = CreateServiceProvider();
-    
-    //Discord Bot
-    await ConfigureDiscordBot(services);
 
-    //TODO: SignalR Server & API
+    //Discord Bot
+    var discord = services.GetRequiredService<DiscordClient>();
+    discord.RegisterEventsAndCommands(services);
+    Log.Information("Connecting to Discord");
+    await discord.ConnectAsync();
+
+    //SignalR Connect to Hubs
+    var loginHelper = services.GetRequiredService<LoginHelper>();
+    await ServerHubsHelper.ConnectToHubs(ServerHubsHelper.GetHubs(services), loginHelper );
 
     await Task.Delay(-1);
 } 
@@ -52,46 +57,33 @@ static IServiceProvider CreateServiceProvider()
 #endif
             .Build();
 
-    var appSettings = configuration.GetRequiredSection("settings").Get<AppSettings>();
+    var appSettings = configuration.GetRequiredSection("settings").Get<AppSettings>()!;
     services.AddSingleton<AppSettings>(_ => appSettings);
-    services.AddSingleton<DiscordClient>(_ => new DiscordClient(new DiscordConfiguration
-    {
-        Token = appSettings.Discord.Token,
-        TokenType = TokenType.Bot,
-        Intents = DiscordIntents.All,
-        LogTimestampFormat = "dd/MM/yyyy - HH:mm:ss"
-    }));
-    services.AddSingleton<DiscordEventsHandler>();
+    services.AddSingleton<DiscordClient>(_ => DiscordBotHelper.CreateDiscordBot(appSettings));
+    services.AddSingleton(new AppState());
+    services.AddMemoryCache();
+
+
+    var serverUri = new Uri($"http://{appSettings.Server.Url}:{appSettings.Server.Port}/api");
+
+    //Server Services
+    services.AddRefitClient<IAuthService>()
+        .ConfigureHttpClient(c => c.BaseAddress = serverUri);
+
+    services.AddRefitClient<IMangasService>()
+        .ConfigureHttpClient(c => c.BaseAddress = serverUri)
+        .AddHttpMessageHandler<AuthHeaderHandler>();
+
+    //Handlers
+    services.AddTransient<AuthHeaderHandler>();
+    services.AddTransient<DiscordEventsHandler>();
+
+    //Helpers
+    services.AddTransient<LoginHelper>();
+
+    //Hubs
+    services.AddSingleton<DiscordEventsHub>();
+    services.AddSingleton<MangasHub>();
 
     return services.BuildServiceProvider();
-}
-
-static async Task ConfigureDiscordBot(IServiceProvider services)
-{
-    Log.Information("Configuring the Discord Connection");
-    var appSettings = services.GetRequiredService<AppSettings>();
-
-    //Start Bot
-    var discord = services.GetRequiredService<DiscordClient>();
-
-    //Interactivity
-    discord.UseInteractivity(new InteractivityConfiguration()
-    {
-        PollBehaviour = PollBehaviour.KeepEmojis,
-        Timeout = TimeSpan.FromSeconds(30)
-    });
-
-    //Commands
-    var commands = discord.UseCommandsNext(new CommandsNextConfiguration()
-    {
-        Services = services,
-        StringPrefixes = new[] { appSettings.Discord.Prefix },
-    });
-    commands.RegisterCommands(Assembly.GetExecutingAssembly());
-
-    //Events
-    services.GetRequiredService<DiscordEventsHandler>().SubscribeDiscordEvents(discord);
-
-    Log.Information("Connecting to Discord");
-    await discord.ConnectAsync();
 }
