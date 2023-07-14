@@ -61,5 +61,5 @@ jobs:
         with:
           portainerUrl: https://portainer.shounengaming.xyz
           accessToken: ${{ secrets.PORTAINER_TOKEN }}
-          stackId: 236
+          stackId: 241
           endpointId: 2
