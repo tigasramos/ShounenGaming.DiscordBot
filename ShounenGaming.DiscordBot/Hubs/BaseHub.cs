@@ -14,7 +14,7 @@ namespace ShounenGaming.DiscordBot.Hubs
             var reconnectInterval = new[] { TimeSpan.FromSeconds(2) };
 
             hub = new HubConnectionBuilder()
-                    .WithUrl($"http://{appSettings.Server.Url}:{appSettings.Server.Port}/{hubName}", options =>
+                    .WithUrl($"{appSettings.Server.Url}/{hubName}", options =>
                     {
                         options.AccessTokenProvider = tokenProvider;
                     })

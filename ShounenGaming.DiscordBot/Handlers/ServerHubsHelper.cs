@@ -29,7 +29,7 @@ namespace ShounenGaming.DiscordBot.Handlers
                     if (ex.Message.Contains("401"))
                         await loginHelper.LoginBot();
 
-                    Log.Error($"Failed connecting to Hub {i}: {ex.Message}");
+                    Log.Error($"Failed connecting to Hub {i}: {ex.Message}\n{ex.StackTrace}");
                     await Task.Delay(1000);
                     i--;
                 }

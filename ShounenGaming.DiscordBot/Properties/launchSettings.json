@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "ShounenGaming.DiscordBot": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Local"
+      }
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

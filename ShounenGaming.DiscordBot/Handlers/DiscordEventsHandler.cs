@@ -95,6 +95,11 @@ namespace ShounenGaming.DiscordBot.Handlers
         {
             Log.Information($"Guild Available");
 
+            while (!discordEventsHub.IsConnected)
+            {
+                await Task.Delay(1000);
+            }
+
             foreach (var member in sender.Guilds.Values.SelectMany(g => g.Members.Values).Where(m => !m.IsBot))
             {
                 var role = member.IsOwner ? RolesEnum.ADMIN : (member.Roles.Any(r => r.Name.Contains("Mods")) ? RolesEnum.MOD : RolesEnum.USER);

@@ -35,7 +35,8 @@ namespace ShounenGaming.DiscordBot.Helpers
             }
             catch (Exception ex)
             {
-                Log.Error(ex.Message);
+                Log.Error($"Exception: {ex.Message}\n{ex.StackTrace}");
+                Log.Error($"Inner: {ex.InnerException?.Message}\n{ex.InnerException?.StackTrace}");
             }
         }
     }

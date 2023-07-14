@@ -15,7 +15,6 @@ namespace ShounenGaming.DiscordBot.Models
     public class ServerSettings
     {
         public string Url { get; set; }
-        public string Port { get; set; }
         public string BotDiscordId { get; set; }
         public string BotPassword { get; set; }
     }

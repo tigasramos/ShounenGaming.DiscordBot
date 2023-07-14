@@ -9,9 +9,12 @@ using ShounenGaming.DiscordBot.Handlers;
 using ShounenGaming.DiscordBot.Models;
 using ShounenGaming.DiscordBot.Helpers;
 using ShounenGaming.DiscordBot.Hubs;
+using System.Net;
 
 try
 {
+    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+
     //Configure Logger
     Log.Logger = new LoggerConfiguration()
         .Enrich.FromLogContext()
@@ -23,6 +26,15 @@ try
 
     var services = CreateServiceProvider();
 
+    var serverUrl = services.GetRequiredService<AppSettings>().Server.Url;
+    var serverRunning = false;
+    while (!serverRunning)
+    {
+        await Task.Delay(2000);
+        serverRunning = await CheckServerStatusHelper.CheckServerIsRunning(serverUrl ?? "");
+        Log.Information($"Server Status: {serverRunning}");
+    }
+
     //Discord Bot
     var discord = services.GetRequiredService<DiscordClient>();
     discord.RegisterEventsAndCommands(services);
@@ -31,7 +43,7 @@ try
 
     //SignalR Connect to Hubs
     var loginHelper = services.GetRequiredService<LoginHelper>();
-    await ServerHubsHelper.ConnectToHubs(ServerHubsHelper.GetHubs(services), loginHelper );
+    await ServerHubsHelper.ConnectToHubs(ServerHubsHelper.GetHubs(services), loginHelper);
 
     await Task.Delay(-1);
 } 
@@ -47,14 +59,14 @@ finally
 static IServiceProvider CreateServiceProvider()
 {
     var services = new ServiceCollection();
+    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
     var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-#if DEBUG
-            .AddJsonFile("appsettings.dev.json", optional: false, reloadOnChange: true)
-#else
-            .AddJsonFile("appsettings.prod.json", optional: false, reloadOnChange: true)
-#endif
+            .AddJsonFile($"appsettings.{environmentName}.json",
+                optional: true,
+                reloadOnChange: true)
+            .AddEnvironmentVariables()
             .Build();
 
     var appSettings = configuration.GetRequiredSection("settings").Get<AppSettings>()!;
@@ -63,8 +75,7 @@ static IServiceProvider CreateServiceProvider()
     services.AddSingleton(new AppState());
     services.AddMemoryCache();
 
-
-    var serverUri = new Uri($"http://{appSettings.Server.Url}:{appSettings.Server.Port}/api");
+    var serverUri = new Uri($"{appSettings.Server.Url}/api");
 
     //Server Services
     services.AddRefitClient<IAuthService>()
