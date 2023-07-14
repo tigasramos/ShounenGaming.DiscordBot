@@ -30,7 +30,7 @@ try
     var serverRunning = false;
     while (!serverRunning)
     {
-        await Task.Delay(2000);
+        await Task.Delay(5000);
         serverRunning = await CheckServerStatusHelper.CheckServerIsRunning(serverUrl ?? "");
         Log.Information($"Server Status: {serverRunning}");
     }
