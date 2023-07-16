@@ -1,8 +1,11 @@
 ﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using ShounenGaming.DiscordBot.Hubs;
+using ShounenGaming.DiscordBot.Interactions;
 using ShounenGaming.DiscordBot.Models;
 using ShounenGaming.DiscordBot.Server.Models;
 using System.Data;
@@ -15,22 +18,45 @@ namespace ShounenGaming.DiscordBot.Handlers
     {
         private readonly TimeSpan MAX_TIME_FULL_CHANNEL = TimeSpan.FromSeconds(30);
 
+        private readonly IServiceProvider services;
+
         private readonly DiscordClient bot;
         private readonly DiscordSettings configuration;
         private readonly IMemoryCache cache;
 
         private readonly DiscordEventsHub discordEventsHub;
 
-        public DiscordEventsHandler(DiscordClient bot, AppSettings configuration, IMemoryCache cache, DiscordEventsHub discordEventsHub )
+        public DiscordEventsHandler(DiscordClient bot, AppSettings configuration, IMemoryCache cache, DiscordEventsHub discordEventsHub, IServiceProvider services)
         {
             this.bot = bot;
             this.configuration = configuration.Discord;
             this.cache = cache;
 
             this.discordEventsHub = discordEventsHub;
-
+            this.services = services;
         }
-
+        #region Interaction
+        internal async Task HandleInteraction(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        {
+            Log.Information($"{e.User.Username} interacted with {e.Id}");
+            try
+            {
+                var keywords = e.Id.Split("_");
+                var handler = keywords[0]! switch
+                {
+                    "registration" => (AbstractInteractionService)services.GetRequiredService(typeof(RegistrationInteraction)),
+                    _ => throw new Exception("Interaction Handler Not Found"),
+                };
+                await handler.HandleInteraction(sender, e);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                await NotifyErrorToSender(e.Guild, e.User.Id);
+            }
+        }
+        #endregion
+       
 
         internal async Task HandleUpdatedServerMember(DiscordClient sender, GuildMemberUpdateEventArgs args)
         {
@@ -80,8 +106,6 @@ namespace ShounenGaming.DiscordBot.Handlers
                 Log.Information($"{args.User.Username} has left {args.Before.Channel.Name}");
             
 
-
-
             // TODO: Remove from call
         }
 
@@ -106,5 +130,13 @@ namespace ShounenGaming.DiscordBot.Handlers
                 await discordEventsHub.UpdateServerMember(member.Id.ToString(), member.AvatarUrl, member.DisplayName, member.Username, role);
             }
         }
+
+        #region Private
+        private static async Task NotifyErrorToSender(DiscordGuild guild, ulong userId)
+        {
+            var member = await guild.GetMemberAsync(userId);
+            await member.SendMessageAsync("There was a problem handling your interaction. Contact the Admin.");
+        }
+        #endregion
     }
 }

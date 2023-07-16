@@ -61,6 +61,8 @@ namespace ShounenGaming.DiscordBot.Helpers
             discord.GuildAvailable += discordEventsHandler.HandleGuildAvailable;
             discord.PresenceUpdated += discordEventsHandler.HandleMemberStatusChanged;
             discord.VoiceStateUpdated += discordEventsHandler.HandleVoiceChat;
+
+            discord.ComponentInteractionCreated += discordEventsHandler.HandleInteraction;
         }
 
 

@@ -10,6 +10,7 @@ using ShounenGaming.DiscordBot.Models;
 using ShounenGaming.DiscordBot.Helpers;
 using ShounenGaming.DiscordBot.Hubs;
 using System.Net;
+using ShounenGaming.DiscordBot.Interactions;
 
 try
 {
@@ -95,6 +96,9 @@ static IServiceProvider CreateServiceProvider()
     //Hubs
     services.AddSingleton<DiscordEventsHub>();
     services.AddSingleton<MangasHub>();
+
+    //Interactions
+    services.AddTransient<RegistrationInteraction>();
 
     return services.BuildServiceProvider();
 }

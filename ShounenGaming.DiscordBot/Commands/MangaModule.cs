@@ -12,7 +12,7 @@ using ShounenGaming.DiscordBot.Hubs;
 namespace ShounenGaming.DiscordBot.Commands
 {
     [ModuleLifespan(ModuleLifespan.Transient)]
-    public class MangaCommandsModule : BaseCommandModule
+    public class MangaModule : BaseCommandModule
     {
         public IMangasService mangasService { private get; set; }
         public MangasHub mangasHub { private get; set; }
@@ -71,37 +71,5 @@ namespace ShounenGaming.DiscordBot.Commands
                 await ctx.Message.CreateReactionAsync(DiscordEmoji.FromName(ctx.Client, ":thumbsdown:"));
             }
         }
-
-
-        //[Command("sources")]
-        //public async Task SearchMangaSources(CommandContext ctx, [RemainingText] string name)
-        //{
-        //    var mangas = await mangasService.SearchMangaSources(name);
-        //    StringBuilder sb = new();
-        //    int i = 1;
-        //    mangas.OrderBy(m => m.Name).ToList().ForEach(m => sb.AppendLine($"{i++}. {m.Name} : {m.Source}"));
-        //    await ctx.RespondAsync(sb.ToString());
-        //}
-
-        //[Command("link")]
-        //public async Task SearchMangaSources(CommandContext ctx, int mangaId, List<int> sourcesOrder)
-        //{
-        //    var mangas = await mangasService.SearchMangaSources(name);
-        //    StringBuilder sb = new();
-        //    int i = 1;
-        //    mangas.OrderBy(m => m.Name).ToList().ForEach(m => sb.AppendLine($"{i++}. {m.Name} : {m.Source}"));
-        //    await ctx.RespondAsync(sb.ToString());
-        //}
-
-
-
-        /*
-         * !searchMAL one piece
-         * !mal 1
-         * !searchAL one piece
-         * !al 1
-         * !sources one piece
-         * !link 1 [1,3,4]
-         */
     }
 }

@@ -23,5 +23,12 @@ namespace ShounenGaming.DiscordBot.Models
     {
         public string Token { get; set; }
         public string Prefix { get; set; }
+        public DiscordServerSettings ServerSettings { get; set; }
+    }
+
+    public class DiscordServerSettings
+    {
+        public string ModsChannelId { get; set; }
+        public string ModsRoleId { get; set; }
     }
 }

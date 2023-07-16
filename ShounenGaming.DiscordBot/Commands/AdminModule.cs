@@ -14,7 +14,7 @@ using DSharpPlus.Entities;
 namespace ShounenGaming.DiscordBot.Commands
 {
     [ModuleLifespan(ModuleLifespan.Transient)]
-    public class AdminCommandsModule : BaseCommandModule
+    public class AdminModule : BaseCommandModule
     {
         public IServiceProvider services { private get; set; }
 
