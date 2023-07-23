@@ -25,8 +25,11 @@ namespace ShounenGaming.DiscordBot.Commands
 
             if (birthdaySeparated.Count != 3) birthdaySeparated = birthday.Split('/').ToList();
             if (birthdaySeparated.Count != 3)
+            {
+                await ctx.RespondAsync("Wrong Date Formatting.");
                 return;
-            
+            }
+
             try
             {
                 await authService.RegisterUser(new Server.Models.CreateUser
@@ -41,7 +44,7 @@ namespace ShounenGaming.DiscordBot.Commands
             }
             catch (Exception ex)
             {
-                Log.Error(ex.Message, ex);
+                Log.Error(ex.ToString());
                 await ctx.RespondAsync("There was an error processing your request.");
             }
           

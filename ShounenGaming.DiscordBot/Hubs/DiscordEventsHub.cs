@@ -86,7 +86,7 @@ namespace ShounenGaming.DiscordBot.Hubs
                 var member = bot.Guilds.Values.SelectMany(x => x.Members.Values).FirstOrDefault(m => m.Id.ToString() == discordId);
                 if (member is null) return;
 
-                await member.SendMessageAsync($"Login Token: **{token}** expires at *{expireDate:dd/MM/yyyy HH:mm}*");
+                await member.SendMessageAsync($"Login Token: **{token}** expires at <t:{((DateTimeOffset)expireDate).ToUnixTimeSeconds()}:R>");
             });
         }
 
