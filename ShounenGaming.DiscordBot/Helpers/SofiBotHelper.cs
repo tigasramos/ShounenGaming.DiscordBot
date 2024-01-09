@@ -17,8 +17,8 @@ namespace ShounenGaming.DiscordBot.Helpers
         public SofiBotHelper(DiscordClient bot)
         {
             this.bot = bot;
-            _timer.Elapsed += SecondPassed;
-            _timer.Start();
+            //_timer.Elapsed += SecondPassed;
+            //_timer.Start();
         }
 
         private async void SecondPassed(object? sender, System.Timers.ElapsedEventArgs e)

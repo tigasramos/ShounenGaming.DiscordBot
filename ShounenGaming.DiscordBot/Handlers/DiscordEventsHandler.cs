@@ -71,8 +71,8 @@ namespace ShounenGaming.DiscordBot.Handlers
         {
             Log.Information($"{args.Author.Username} has sent a message");
 
-            if (args.Author.Id == SofiBotHelper.SOFI_ID)
-                sofiBotHelper.HandleSofiMessage(args.Message);
+            //if (args.Author.Id == SofiBotHelper.SOFI_ID)
+            //    sofiBotHelper.HandleSofiMessage(args.Message);
             
         }
 
