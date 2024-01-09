@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Entities;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 
 namespace ShounenGaming.DiscordBot.Helpers
 {
@@ -10,66 +11,76 @@ namespace ShounenGaming.DiscordBot.Helpers
 
         private readonly Dictionary<ulong, SofiTimersHolder> _usersTimers = new();
 
-        public void HandleSofiMessage(DiscordMessage message, Func<ulong, ulong, ulong, string, Task> responseFunction)
+        private System.Timers.Timer _timer = new(1000);
+
+        private readonly DiscordClient bot;
+        public SofiBotHelper(DiscordClient bot)
         {
-            if (message.ReferencedMessage != null && message.ReferencedMessage.Content == "sd" && message.Embeds.Any())
+            this.bot = bot;
+            _timer.Elapsed += SecondPassed;
+            _timer.Start();
+        }
+
+        private async void SecondPassed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            var availableUsers = _usersTimers.Values.Where(v => v.Available != null && v.Available <= DateTime.UtcNow);
+            foreach (var user in availableUsers)
             {
-                UserDropped(message.ReferencedMessage.Author.Id, message.Channel.GuildId!.Value, message.ChannelId, responseFunction);
+                user.Available = null;
+                await SendPrivateMessageToUser(user.UserId, user.GuildId, user.ChannelId, "**Drop** and **Grab** are now available");
             }
-            else if (message.Content.Contains("grabbed") && message.MentionedUsers.Any())
+        }
+        private async Task SendPrivateMessageToUser(ulong userId, ulong guildId, ulong channelId, string message)
+        {
+            var guild = await bot.GetGuildAsync(guildId);
+            var channel = guild.GetChannel(channelId);
+            await channel.SendMessageAsync($"<@{userId}> {message}");
+        }
+
+        public void HandleSofiMessage(DiscordMessage message)
+        {
+            if (message.ReferencedMessage != null && message.ReferencedMessage.Content.ToLower() == "sd" && message.Embeds.Any())
             {
-                UserGrabbed(message.MentionedUsers[0].Id, message.Channel.GuildId!.Value, message.ChannelId, responseFunction);
+                UserDropped(message.ReferencedMessage.Author.Id, message.Channel.GuildId!.Value, message.ChannelId);
+            }
+            else if (message.Content.ToLower().Contains("grabbed") && message.MentionedUsers.Any())
+            {
+                UserGrabbed(message.MentionedUsers[0].Id, message.Channel.GuildId!.Value, message.ChannelId);
             }
         }
 
-        private void UserGrabbed(ulong userId, ulong guildId, ulong channelId, Func<ulong, ulong, ulong, string, Task> responseFunction)
+        private void UserGrabbed(ulong userId, ulong guildId, ulong channelId)
         {
             if (!_usersTimers.ContainsKey(userId))
-                _usersTimers.Add(userId, new SofiTimersHolder());
+                _usersTimers.Add(userId, new SofiTimersHolder { UserId = userId, ChannelId = channelId, GuildId = guildId });
 
             var timers = _usersTimers[userId];
-            if (timers.GrabTimer != null)
-                return;
-
-            timers.GrabTimer = new System.Timers.Timer(60 * 1000 * GrabCooldownMinutes);
-            timers.GrabTimer.Elapsed += async (sender, e) =>
+            var finishTimer = DateTime.UtcNow.AddMinutes(GrabCooldownMinutes);
+            if (timers.Available == null || timers.Available <= finishTimer)
             {
-                var timer = _usersTimers[userId];
-                timer.GrabTimer?.Stop();
-                timer.GrabTimer = null;
-
-                if (timer.DropTimer == null)
-                    await responseFunction.Invoke(userId, guildId, channelId, "**Drop** and **Grab** are now available");
-            };
-            timers.GrabTimer.Start();
+                timers.Available = finishTimer;
+            }
         }
 
-        private void UserDropped(ulong userId, ulong guildId, ulong channelId, Func<ulong, ulong, ulong, string, Task> responseFunction)
+        private void UserDropped(ulong userId, ulong guildId, ulong channelId)
         {
             if (!_usersTimers.ContainsKey(userId))
-                _usersTimers.Add(userId, new SofiTimersHolder());
+                _usersTimers.Add(userId, new SofiTimersHolder { UserId = userId , ChannelId = channelId, GuildId = guildId });
 
             var timers = _usersTimers[userId];
-            if (timers.DropTimer != null)
-                return;
-
-            timers.DropTimer = new System.Timers.Timer(60 * 1000 * DropCooldownMinutes);
-            timers.DropTimer.Elapsed += async (sender, e) =>
+            var finishTimer = DateTime.UtcNow.AddMinutes(DropCooldownMinutes);
+            if (timers.Available == null || timers.Available <= finishTimer)
             {
-                var timer = _usersTimers[userId];
-                timer.DropTimer?.Stop();
-                timer.DropTimer = null;
-
-                if (timer.GrabTimer == null)
-                    await responseFunction.Invoke(userId, guildId, channelId, "**Drop** and **Grab** are now available");
-            };
-            timers.DropTimer.Start();
+                timers.Available = finishTimer;
+            }
         }
     }
 
     internal class SofiTimersHolder
     {
-        public System.Timers.Timer? DropTimer { get; set; }
-        public System.Timers.Timer? GrabTimer { get; set; }
+        public DateTime? Available { get; set; }
+        public ulong GuildId { get; set; }
+        public ulong ChannelId { get; set; }
+        public ulong UserId { get; set; }
     }
 }

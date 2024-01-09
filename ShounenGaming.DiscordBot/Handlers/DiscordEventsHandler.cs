@@ -72,16 +72,10 @@ namespace ShounenGaming.DiscordBot.Handlers
             Log.Information($"{args.Author.Username} has sent a message");
 
             if (args.Author.Id == SofiBotHelper.SOFI_ID)
-                sofiBotHelper.HandleSofiMessage(args.Message, SendPrivateMessageToUser);
+                sofiBotHelper.HandleSofiMessage(args.Message);
             
         }
 
-        private async Task SendPrivateMessageToUser(ulong userId, ulong guildId, ulong channelId, string message)
-        {
-            var guild = await bot.GetGuildAsync(guildId);
-            var channel = guild.GetChannel(channelId);
-            await channel.SendMessageAsync($"<@{userId}> {message}");
-        }
 
         internal async Task HandleNewServerMember(DiscordClient sender, GuildMemberAddEventArgs args)
         {
