@@ -4,13 +4,12 @@ using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using ShounenGaming.DiscordBot.Helpers;
 using ShounenGaming.DiscordBot.Hubs;
 using ShounenGaming.DiscordBot.Interactions;
 using ShounenGaming.DiscordBot.Models;
 using ShounenGaming.DiscordBot.Server.Models;
 using System.Data;
-using System.Net.WebSockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ShounenGaming.DiscordBot.Handlers
 {
@@ -24,15 +23,17 @@ namespace ShounenGaming.DiscordBot.Handlers
         private readonly DiscordSettings configuration;
         private readonly IMemoryCache cache;
 
+        private readonly SofiBotHelper sofiBotHelper;
         private readonly DiscordEventsHub discordEventsHub;
 
-        public DiscordEventsHandler(DiscordClient bot, AppSettings configuration, IMemoryCache cache, DiscordEventsHub discordEventsHub, IServiceProvider services)
+        public DiscordEventsHandler(DiscordClient bot, AppSettings configuration, IMemoryCache cache, DiscordEventsHub discordEventsHub, SofiBotHelper sofiBotHelper, IServiceProvider services)
         {
             this.bot = bot;
             this.configuration = configuration.Discord;
             this.cache = cache;
 
             this.discordEventsHub = discordEventsHub;
+            this.sofiBotHelper = sofiBotHelper;
             this.services = services;
         }
         #region Interaction
@@ -69,6 +70,17 @@ namespace ShounenGaming.DiscordBot.Handlers
         internal async Task HandleMessageReceived(DiscordClient sender, MessageCreateEventArgs args)
         {
             Log.Information($"{args.Author.Username} has sent a message");
+
+            if (args.Author.Id == SofiBotHelper.SOFI_ID)
+                sofiBotHelper.HandleSofiMessage(args.Message, SendPrivateMessageToUser);
+            
+        }
+
+        private async Task SendPrivateMessageToUser(ulong userId, ulong guildId, ulong channelId, string message)
+        {
+            var guild = await bot.GetGuildAsync(guildId);
+            var channel = guild.GetChannel(channelId);
+            await channel.SendMessageAsync($"<@{userId}> {message}");
         }
 
         internal async Task HandleNewServerMember(DiscordClient sender, GuildMemberAddEventArgs args)
