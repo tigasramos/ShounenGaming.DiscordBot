@@ -23,17 +23,15 @@ namespace ShounenGaming.DiscordBot.Handlers
         private readonly DiscordSettings configuration;
         private readonly IMemoryCache cache;
 
-        private readonly SofiBotHelper sofiBotHelper;
         private readonly DiscordEventsHub discordEventsHub;
 
-        public DiscordEventsHandler(DiscordClient bot, AppSettings configuration, IMemoryCache cache, DiscordEventsHub discordEventsHub, SofiBotHelper sofiBotHelper, IServiceProvider services)
+        public DiscordEventsHandler(DiscordClient bot, AppSettings configuration, IMemoryCache cache, DiscordEventsHub discordEventsHub, IServiceProvider services)
         {
             this.bot = bot;
             this.configuration = configuration.Discord;
             this.cache = cache;
 
             this.discordEventsHub = discordEventsHub;
-            this.sofiBotHelper = sofiBotHelper;
             this.services = services;
         }
         #region Interaction
@@ -70,10 +68,6 @@ namespace ShounenGaming.DiscordBot.Handlers
         internal async Task HandleMessageReceived(DiscordClient sender, MessageCreateEventArgs args)
         {
             Log.Information($"{args.Author.Username} has sent a message");
-
-            //if (args.Author.Id == SofiBotHelper.SOFI_ID)
-            //    sofiBotHelper.HandleSofiMessage(args.Message);
-            
         }
 
 
@@ -103,8 +97,8 @@ namespace ShounenGaming.DiscordBot.Handlers
 
         internal async Task HandleVoiceChat(DiscordClient sender, VoiceStateUpdateEventArgs args)
         {
-            var hasJoined = args.After.Channel != null && args.Before.Channel == null;
-            var hasLeft = args.Before.Channel != null && args.After.Channel == null;
+            var hasJoined = (args.After != null && args.After.Channel != null) && (args.Before == null || args.Before.Channel == null);
+            var hasLeft = (args.Before != null && args.Before.Channel != null) && (args.After == null || args.After.Channel == null);
 
             if (hasJoined)
                 Log.Information($"{args.User.Username} has joined {args.Channel.Name}");
@@ -117,7 +111,7 @@ namespace ShounenGaming.DiscordBot.Handlers
 
         internal async Task HandleMemberStatusChanged(DiscordClient sender, PresenceUpdateEventArgs args)
         {
-            if (args.PresenceBefore.Status != args.PresenceAfter.Status) 
+            if (args.PresenceBefore != null && args.PresenceAfter != null && args.PresenceBefore.Status != args.PresenceAfter.Status) 
                 Log.Information($"{args.User.Username} has just updated his Status from {args.PresenceBefore.Status} to {args.PresenceAfter.Status}");
         }
 
