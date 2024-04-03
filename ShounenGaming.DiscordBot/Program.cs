@@ -92,7 +92,6 @@ static IServiceProvider CreateServiceProvider()
 
     //Helpers
     services.AddTransient<LoginHelper>();
-    services.AddTransient<SofiBotHelper>();
 
     //Hubs
     services.AddSingleton<DiscordEventsHub>();
