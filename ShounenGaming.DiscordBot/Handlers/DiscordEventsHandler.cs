@@ -160,7 +160,7 @@ namespace ShounenGaming.DiscordBot.Handlers
                 var splittedMessage = responseMessageForAction.Content.Replace("```", "").Split("||");
                 var allCharacters = splittedMessage[1].Split(",").ToList();
                 allCharacters.AddRange(selectedCharacters);
-                allCharacters = allCharacters.Distinct().Select(c => c.Trim()).ToList();
+                allCharacters = allCharacters.Select(c => c.Trim()).Distinct().ToList();
                 await responseMessageForAction.ModifyAsync($"```{splittedMessage[0].Trim()} || {allCharacters.Aggregate((a, b) => a + ", " + b)}```");
             } 
             else
