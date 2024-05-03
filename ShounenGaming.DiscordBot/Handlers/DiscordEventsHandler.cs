@@ -87,7 +87,8 @@ namespace ShounenGaming.DiscordBot.Handlers
             if (args.Message.Author == null 
                 || args.Message.Author.Id != 1219361361348530298
                 || !args.Message.Content.Contains("dropping")
-                || args.Message.ReferencedMessage == null)
+                || args.Message.ReferencedMessage == null
+                || args.User.IsBot)
                 return;
 
             int selectedIndex = -1;
