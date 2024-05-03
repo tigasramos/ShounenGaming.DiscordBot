@@ -1,10 +1,5 @@
 ﻿using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ShounenGaming.DiscordBot.Server.Services;
 using Serilog;
 using DSharpPlus.Entities;
@@ -49,6 +44,51 @@ namespace ShounenGaming.DiscordBot.Commands
             }
           
         }
+        
+        [Command("rps")]
+        public async Task RockPaperScissorsGame(CommandContext ctx, DiscordUser user)
+        {
+            // TODO: Embed Message to play Rock Paper Scissors with another User
+        }
 
+        [Command("rps")]
+        public async Task RockPaperScissorsGame(CommandContext ctx, RockPaperScissorsEnum play)
+        {
+            var enumValues = Enum.GetValues(typeof(RockPaperScissorsEnum));
+            var randomGenerator = new Random().Next(enumValues.Length);
+            var cpuValue = (RockPaperScissorsEnum)randomGenerator;
+
+            var playEmoji = ConvertRockPaperScissorsToEmoji(play);
+            var cpuEmoji = ConvertRockPaperScissorsToEmoji(cpuValue);
+
+            var gameState = "Lost";
+            if ((play == RockPaperScissorsEnum.ROCK && cpuValue == RockPaperScissorsEnum.SCISSORS)
+                || (play == RockPaperScissorsEnum.PAPER && cpuValue == RockPaperScissorsEnum.ROCK)
+                || (play == RockPaperScissorsEnum.SCISSORS && cpuValue == RockPaperScissorsEnum.SCISSORS))
+                gameState = "Won";
+            else if ((play == RockPaperScissorsEnum.ROCK && cpuValue == RockPaperScissorsEnum.ROCK)
+                || (play == RockPaperScissorsEnum.PAPER && cpuValue == RockPaperScissorsEnum.PAPER)
+                || (play == RockPaperScissorsEnum.SCISSORS && cpuValue == RockPaperScissorsEnum.SCISSORS))
+                gameState = "Draw";
+
+            await ctx.RespondAsync($"You: {playEmoji} vs Bot: {cpuEmoji}\nYou {gameState}!");
+        }
+        private string ConvertRockPaperScissorsToEmoji(RockPaperScissorsEnum play)
+        {
+            return play switch
+            {
+                RockPaperScissorsEnum.ROCK => ":rock:",
+                RockPaperScissorsEnum.PAPER => ":newspaper:",
+                RockPaperScissorsEnum.SCISSORS => ":scissors:",
+                _ => ":question:",
+            };
+        }
+
+        [Command("random")]
+        public async Task RandomNumber(CommandContext ctx, int max = 10)
+        {
+            var generatedNumber = new Random().Next(max);
+            await ctx.RespondAsync($"Selected value is {generatedNumber + 1}.");
+        }
     }
 }

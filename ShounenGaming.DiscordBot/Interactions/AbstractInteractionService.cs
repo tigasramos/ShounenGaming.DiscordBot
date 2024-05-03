@@ -31,17 +31,7 @@ namespace ShounenGaming.DiscordBot.Interactions
         public abstract Task HandleInteraction(DiscordClient sender, ComponentInteractionCreateEventArgs e);
 
 
-        protected async Task UpdateEmbed(DiscordEmbed oldEmbed, DiscordInteraction interaction, bool accepted, string modMention)
-        {
-            var embedColor = accepted ? DiscordColor.Green : DiscordColor.Red;
-            var embed = new DiscordEmbedBuilder(oldEmbed).WithColor(embedColor).Build();
-
-            await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
-                new DiscordInteractionResponseBuilder()
-                .WithContent(string.Format("{0} by {1}", accepted ? "Accepted" : "Rejected", modMention))
-                .AddEmbed(embed));
-
-        }
+        
 
     }
 }
