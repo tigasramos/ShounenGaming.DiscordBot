@@ -8,6 +8,9 @@ using DSharpPlus.CommandsNext;
 using Serilog;
 using ShounenGaming.DiscordBot.Handlers;
 using ShounenGaming.DiscordBot.Models;
+using ShounenGaming.DiscordBot.Converters;
+using DSharpPlus.ModalCommands;
+using DSharpPlus.ModalCommands.Extensions;
 
 namespace ShounenGaming.DiscordBot.Helpers
 {
@@ -49,8 +52,16 @@ namespace ShounenGaming.DiscordBot.Helpers
                 StringPrefixes = new[] { appSettings.Discord.Prefix },
             });
 
+            commands.RegisterConverter(new RockPaperScissorsConverter());
+
             commands.RegisterCommands(Assembly.GetExecutingAssembly());
             commands.CommandErrored += CmdErroredHandler;
+
+            var modalCommands = discord.UseModalCommands(new ModalCommandsConfiguration()
+            {
+                Services = services
+            });
+            modalCommands.RegisterModals(Assembly.GetExecutingAssembly());
 
             //Events
             discord.Ready += discordEventsHandler.HandleInitializing;
@@ -61,8 +72,10 @@ namespace ShounenGaming.DiscordBot.Helpers
             discord.GuildAvailable += discordEventsHandler.HandleGuildAvailable;
             discord.PresenceUpdated += discordEventsHandler.HandleMemberStatusChanged;
             discord.VoiceStateUpdated += discordEventsHandler.HandleVoiceChat;
+            discord.MessageReactionAdded += discordEventsHandler.HandleReactionAdded;
 
             discord.ComponentInteractionCreated += discordEventsHandler.HandleInteraction;
+            discord.ModalSubmitted += discordEventsHandler.HandleModal;
         }
 
 
