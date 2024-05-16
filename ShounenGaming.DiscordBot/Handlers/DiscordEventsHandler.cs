@@ -122,6 +122,7 @@ namespace ShounenGaming.DiscordBot.Handlers
             var show = previousLine.Split("•").Last().Replace("\r\n", string.Empty).Trim();
 
             await args.Channel.SendMessageAsync($"```.wr {show} || {character}```");
+            await args.Message.DeleteAllReactionsAsync(args.Emoji);
         }
 
         /// <summary>
@@ -183,8 +184,7 @@ namespace ShounenGaming.DiscordBot.Handlers
             if (args.Message.Author == null
                 || args.Message.Author.Id != 853629533855809596
                 || args.Message.ReferencedMessage == null
-                || !args.Message.ReferencedMessage.Content.ToLowerInvariant().StartsWith("sg")
-                || args.User.Id != args.Message.ReferencedMessage.Author.Id)
+                || !args.Message.ReferencedMessage.Content.ToLowerInvariant().StartsWith("sg"))
                 return;
 
             if (args.Emoji.GetDiscordName() == ":x:")
@@ -193,6 +193,7 @@ namespace ShounenGaming.DiscordBot.Handlers
                 var show = args.Message.Embeds[0].Description.Split("\n")[1].Split("**")[1];
 
                 await args.Message.RespondAsync($"```.wr {show} || {character}```");
+                await args.Message.DeleteAllReactionsAsync(args.Emoji);
             }
             else return;
         }
