@@ -77,6 +77,7 @@ namespace ShounenGaming.DiscordBot.Handlers
             // Handle Messages
             await HandleWishlistReaction(sender, args);
             await HandleSeriesReaction(sender, args);
+            await HandleTradeReaction(sender, args);
         }
 
         /// <summary>
@@ -174,6 +175,28 @@ namespace ShounenGaming.DiscordBot.Handlers
             await args.Message.DeleteReactionAsync(args.Emoji, args.User);
         }
 
+        /// <summary>
+        /// Handle a Reaction on a SOFI sg
+        /// </summary>
+        private async Task HandleTradeReaction(DiscordClient sender, MessageReactionAddEventArgs args)
+        {
+            if (args.Message.Author == null
+                || args.Message.Author.Id != 853629533855809596
+                || args.Message.ReferencedMessage == null
+                || !args.Message.ReferencedMessage.Content.ToLowerInvariant().StartsWith("sg")
+                || args.User.Id != args.Message.ReferencedMessage.Author.Id)
+                return;
+
+            if (args.Emoji.GetDiscordName() == ":x:")
+            {
+                var character = args.Message.Embeds[0].Description.Split("\n")[0].Split("**")[1];
+                var show = args.Message.Embeds[0].Description.Split("\n")[1].Split("**")[1];
+
+                await args.Message.RespondAsync($"```.wr {show} || {character}```");
+            }
+            else return;
+        }
+
 
         internal async Task HandleMessageReceived(DiscordClient sender, MessageCreateEventArgs args)
         {
@@ -181,6 +204,7 @@ namespace ShounenGaming.DiscordBot.Handlers
 
             // Handle Messages
             await HandleWishlistMessage(sender, args);
+            await HandleTradeMessage(sender, args);
             await HandleSeriesMessage(sender, args);
         }
 
@@ -204,6 +228,21 @@ namespace ShounenGaming.DiscordBot.Handlers
 
             if (lines > 2)
                 await args.Message.CreateReactionAsync(DiscordEmoji.FromName(sender, ":three:"));
+
+        }
+
+        /// <summary>
+        /// Handles sg from SOFI and adds emojis
+        /// </summary>
+        private async Task HandleTradeMessage(DiscordClient sender, MessageCreateEventArgs args)
+        {
+            if (args.Author.Id != 853629533855809596
+                || args.Message.ReferencedMessage == null
+                || !args.Message.ReferencedMessage.Content.ToLowerInvariant().StartsWith("sg"))
+                return;
+
+            // Add Emoji to Fetch for the remaining
+            await args.Message.CreateReactionAsync(DiscordEmoji.FromName(sender, ":x:"));
 
         }
 
