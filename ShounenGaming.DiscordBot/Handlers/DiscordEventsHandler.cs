@@ -184,7 +184,8 @@ namespace ShounenGaming.DiscordBot.Handlers
             if (args.Message.Author == null
                 || args.Message.Author.Id != 853629533855809596
                 || args.Message.ReferencedMessage == null
-                || !args.Message.ReferencedMessage.Content.ToLowerInvariant().StartsWith("sg"))
+                || !args.Message.ReferencedMessage.Content.ToLowerInvariant().StartsWith("sg")
+                || args.User.IsBot)
                 return;
 
             if (args.Emoji.GetDiscordName() == ":x:")
