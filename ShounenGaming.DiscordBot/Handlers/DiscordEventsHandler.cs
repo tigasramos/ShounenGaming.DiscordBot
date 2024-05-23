@@ -122,7 +122,7 @@ namespace ShounenGaming.DiscordBot.Handlers
             var show = previousLine.Split("•").Last().Replace("\r\n", string.Empty).Trim();
 
             await args.Channel.SendMessageAsync($"```.wr {show} || {character}```");
-            await args.Message.DeleteAllReactionsAsync(args.Emoji);
+            await args.Message.DeleteReactionsEmojiAsync(args.Emoji);
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace ShounenGaming.DiscordBot.Handlers
                 var show = args.Message.Embeds[0].Description.Split("\n")[1].Split("**")[1];
 
                 await args.Message.RespondAsync($"```.wr {show} || {character}```");
-                await args.Message.DeleteAllReactionsAsync(args.Emoji);
+                await args.Message.DeleteReactionsEmojiAsync(args.Emoji);
             }
             else return;
         }
