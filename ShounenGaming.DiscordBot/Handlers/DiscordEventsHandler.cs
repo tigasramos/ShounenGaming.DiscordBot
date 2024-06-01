@@ -73,16 +73,12 @@ namespace ShounenGaming.DiscordBot.Handlers
         internal async Task HandleReactionAdded(DiscordClient sender, MessageReactionAddEventArgs args)
         {
             Log.Information($"{args.User.Username} has reacted to a message");
-
-            // Handle Messages
-            await HandleWishlistReaction(sender, args);
-            await HandleSeriesReaction(sender, args);
-            await HandleTradeReaction(sender, args);
         }
 
         /// <summary>
         /// Handle a Reaction on a BetterWishlist ping
         /// </summary>
+        [Obsolete]
         private async Task HandleWishlistReaction(DiscordClient sender, MessageReactionAddEventArgs args)
         {
             if (args.Message.Author == null 
@@ -128,6 +124,7 @@ namespace ShounenGaming.DiscordBot.Handlers
         /// <summary>
         /// Handle a Reaction on a SOFI ssl
         /// </summary>
+        [Obsolete]
         private async Task HandleSeriesReaction(DiscordClient sender, MessageReactionAddEventArgs args)
         {
             if (args.Message.Author == null 
@@ -179,6 +176,7 @@ namespace ShounenGaming.DiscordBot.Handlers
         /// <summary>
         /// Handle a Reaction on a SOFI sg
         /// </summary>
+        [Obsolete]
         private async Task HandleTradeReaction(DiscordClient sender, MessageReactionAddEventArgs args)
         {
             if (args.Message.Author == null
@@ -203,16 +201,12 @@ namespace ShounenGaming.DiscordBot.Handlers
         internal async Task HandleMessageReceived(DiscordClient sender, MessageCreateEventArgs args)
         {
             Log.Information($"{args.Author.Username} has sent a message");
-
-            // Handle Messages
-            await HandleWishlistMessage(sender, args);
-            await HandleTradeMessage(sender, args);
-            await HandleSeriesMessage(sender, args);
         }
 
         /// <summary>
         /// Handles dropped messages from BetterWishlist and adds emojis
         /// </summary>
+        [Obsolete]
         private async Task HandleWishlistMessage(DiscordClient sender, MessageCreateEventArgs args)
         {
             if (args.Author.Id != 1219361361348530298
@@ -236,6 +230,7 @@ namespace ShounenGaming.DiscordBot.Handlers
         /// <summary>
         /// Handles sg from SOFI and adds emojis
         /// </summary>
+        [Obsolete]
         private async Task HandleTradeMessage(DiscordClient sender, MessageCreateEventArgs args)
         {
             if (args.Author.Id != 853629533855809596
@@ -251,6 +246,7 @@ namespace ShounenGaming.DiscordBot.Handlers
         /// <summary>
         /// Handles ssl from SOFI and adds emojis
         /// </summary>
+        [Obsolete]
         private async Task HandleSeriesMessage(DiscordClient sender, MessageCreateEventArgs args)
         {
             if (args.Author.Id != 853629533855809596
