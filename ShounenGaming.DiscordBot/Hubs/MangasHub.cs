@@ -19,8 +19,10 @@ namespace ShounenGaming.DiscordBot.Hubs
 
                 foreach (var discordId in discordIds)
                 {
+                    if (discordId != "270355690680221706") continue;
+
                     var member = bot.Guilds.Values.SelectMany(x => x.Members.Values).FirstOrDefault(m => m.Id.ToString() == discordId);
-                    if (member is null) return;
+                    if (member is null) continue;
 
                     await member.SendMessageAsync($":alarm_clock: The manga **{mangaName}** has just published {chapterPlural} **_{string.Join(", ", chapters)}_**.");
                 }
