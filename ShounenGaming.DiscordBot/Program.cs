@@ -11,6 +11,7 @@ using ShounenGaming.DiscordBot.Helpers;
 using ShounenGaming.DiscordBot.Hubs;
 using System.Net;
 using ShounenGaming.DiscordBot.Interactions;
+using MQTTnet.Client;
 
 try
 {
@@ -73,6 +74,11 @@ static IServiceProvider CreateServiceProvider()
     var appSettings = configuration.GetRequiredSection("settings").Get<AppSettings>()!;
     services.AddSingleton<AppSettings>(_ => appSettings);
     services.AddSingleton<DiscordClient>(_ => DiscordBotHelper.CreateDiscordBot(appSettings));
+    services.AddSingleton<MqttClientOptions>(_ => new MqttClientOptionsBuilder()
+           .WithClientId("DiscordBot")
+           .WithTcpServer("192.168.1.221", 1883) 
+           .WithCleanSession()
+           .Build());
     services.AddSingleton(new AppState());
     services.AddMemoryCache();
 
