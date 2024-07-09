@@ -3,6 +3,9 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using MQTTnet;
+using MQTTnet.Client;
+using MQTTnet.Server;
 using Serilog;
 using ShounenGaming.DiscordBot.Helpers;
 using ShounenGaming.DiscordBot.Hubs;
@@ -10,11 +13,16 @@ using ShounenGaming.DiscordBot.Interactions;
 using ShounenGaming.DiscordBot.Models;
 using ShounenGaming.DiscordBot.Server.Models;
 using System.Data;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ShounenGaming.DiscordBot.Handlers
 {
     internal class DiscordEventsHandler
     {
+        private static string CardPattern = @"<@(\d+)> \*\*grabbed\*\* the \*\*([^*]+)\*\* card";
+        private static string VersionPattern = @"<@(\d+)> \*\*grabbed\*\* the \*\*([^*]+)\*\* version token";
+        
         private readonly TimeSpan MAX_TIME_FULL_CHANNEL = TimeSpan.FromSeconds(30);
 
         private readonly IServiceProvider services;
@@ -201,6 +209,87 @@ namespace ShounenGaming.DiscordBot.Handlers
         internal async Task HandleMessageReceived(DiscordClient sender, MessageCreateEventArgs args)
         {
             Log.Information($"{args.Author.Username} has sent a message");
+
+            try
+            {
+                // From Nori
+                if (args.Author.Id == 742070928111960155)
+                {
+                    // Drop Available
+                    if (args.Message.Content.Contains("<@270355690680221706> You can now **drop**!"))
+                    {
+                        await SendMQTTMessage("drop-available");
+                    }
+
+                    // Someone Dropped a Card
+                    if (args.Message.ReferencedMessage != null && args.Message.ReferencedMessage.Content.ToLower().Trim() == "sd")
+                    {
+                        foreach(var line in args.Message.Content.Split("\n"))
+                        {
+                            var tokens = line.Split('•');
+
+                            // Show if Event (TODO), G < 100 or WL > 50
+                            var wishlistNumberFound = int.TryParse(tokens[1].Replace(":heart:", "").Replace("`", ""), out int wishlistNumber);
+                            var gNumberFound = int.TryParse(tokens[2].Replace("ɢ", "").Replace("`", ""), out int gNumber);
+
+                            if ((wishlistNumberFound && wishlistNumber > 50) ||
+                                (gNumberFound && gNumber < 100))
+                            {
+                                var user = await args.Guild.GetMemberAsync(args.Message.ReferencedMessage.Author.Id);
+                                await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** dropped {tokens[3].Trim()} from **{tokens[4].Trim()}** with ({tokens[2].Trim()}) and **{wishlistNumber}** :heart:");
+                                
+                            }
+                        }
+                    }
+                }
+
+                // From SOFI
+                if (args.Author.Id == 853629533855809596)
+                {
+                    // Drop Unavailable
+                    if (args.Message.Content.Contains("<@270355690680221706> is **dropping** cards"))
+                    {
+                        await SendMQTTMessage("drop-unavailable");
+                    }
+
+                    // Someone Grabbed a Card 
+                    var match = Regex.Match(args.Message.Content, CardPattern);
+                    if (match.Success)
+                    {
+                        var user = await args.Guild.GetMemberAsync(Convert.ToUInt64(match.Groups[1].Value));
+                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed **{match.Groups[2].Value}** Card");
+                    }
+
+                    // Someone Grabbed a Version
+                    match = Regex.Match(args.Message.Content, VersionPattern);
+                    if (match.Success)
+                    {
+                        var user = await args.Guild.GetMemberAsync(Convert.ToUInt64(match.Groups[1].Value));
+                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed **{match.Groups[2].Value}** Version");
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error Sending Message: {ex}");
+            }
+        }
+
+        private async Task SendMQTTMessage(string topic, string payload = "")
+        {
+            var mqttOptions = services.GetRequiredService<MqttClientOptions>();
+            var mqttClient = new MqttFactory().CreateMqttClient();
+            await mqttClient.ConnectAsync(mqttOptions);
+
+            var message = new MqttApplicationMessageBuilder()
+               .WithTopic(topic)
+               .WithPayload(payload)
+               .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce)
+               .WithRetainFlag(false)
+               .Build();
+            await mqttClient.PublishAsync(message, CancellationToken.None);
+            await mqttClient.DisconnectAsync();
         }
 
         /// <summary>
