@@ -224,14 +224,22 @@ namespace ShounenGaming.DiscordBot.Handlers
                     // Someone Dropped a Card
                     if (args.Message.ReferencedMessage != null && args.Message.ReferencedMessage.Content.ToLower().Trim() == "sd")
                     {
-                        var sb = new StringBuilder();
-                        sb.AppendLine("**Drops:**");
                         foreach(var line in args.Message.Content.Split("\n"))
                         {
                             var tokens = line.Split('•');
-                            sb.AppendLine($"{tokens[3].Trim()} - {tokens[4].Trim()} ({tokens[2].Trim()})");
+
+                            // Show if Event (TODO), G < 100 or WL > 50
+                            var wishlistNumberFound = int.TryParse(tokens[1].Replace(":heart:", "").Replace("`", ""), out int wishlistNumber);
+                            var gNumberFound = int.TryParse(tokens[2].Replace("ɢ", "").Replace("`", ""), out int gNumber);
+
+                            if ((wishlistNumberFound && wishlistNumber > 50) ||
+                                (gNumberFound && gNumber < 100))
+                            {
+                                var user = await args.Guild.GetMemberAsync(args.Message.ReferencedMessage.Author.Id);
+                                await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** dropped {tokens[3].Trim()} from **{tokens[4].Trim()}** with ({tokens[2].Trim()}) and **{wishlistNumber}** :heart:");
+                                
+                            }
                         }
-                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync(sb.ToString());
                     }
                 }
 
