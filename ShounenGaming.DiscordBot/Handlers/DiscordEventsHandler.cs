@@ -253,11 +253,11 @@ namespace ShounenGaming.DiscordBot.Handlers
                     }
 
                     // Someone Grabbed an Event Card 
-                    if (args.Message.Content.Contains("(Summer 2024 🏖️)") && args.Message.Content.Contains("grabbed"))
+                    if (args.Message.Content.Contains("(**Summer 2024") && args.Message.Content.Contains("grabbed"))
                     {
                         var user = await args.Guild.GetMemberAsync(args.Message.MentionedUsers[0].Id);
-                        var cardName = args.Message.Content.Split("grabbed the")[1].Split("card")[0];
-                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed **{cardName}** Card (Summer 2024 🏖️)");
+                        var cardName = args.Message.Content.Split("**grabbed** the")[1].Split("card (")[0].Trim();
+                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed {cardName} Card (Summer 2024 🏖️)");
                     }
 
                     // Someone Grabbed a Version
