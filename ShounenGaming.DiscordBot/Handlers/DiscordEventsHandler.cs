@@ -232,7 +232,7 @@ namespace ShounenGaming.DiscordBot.Handlers
                             var wishlistNumberFound = int.TryParse(tokens[1].Replace(":heart:", "").Replace("`", ""), out int wishlistNumber);
                             var gNumberFound = int.TryParse(tokens[2].Replace("ɢ", "").Replace("`", ""), out int gNumber);
 
-                            if ((wishlistNumberFound && wishlistNumber > 50) ||
+                            if ((wishlistNumberFound && wishlistNumber >= 100) ||
                                 (gNumberFound && gNumber < 100))
                             {
                                 var user = await args.Guild.GetMemberAsync(args.Message.ReferencedMessage.Author.Id);
@@ -252,21 +252,21 @@ namespace ShounenGaming.DiscordBot.Handlers
                         await SendMQTTMessage("drop-unavailable");
                     }
 
-                    // Someone Grabbed a Card 
-                    var match = Regex.Match(args.Message.Content, CardPattern);
-                    if (match.Success)
+                    // Someone Grabbed an Event Card 
+                    if (args.Message.Content.Contains("(Summer 2024 🏖️)") && args.Message.Content.Contains("grabbed"))
                     {
-                        var user = await args.Guild.GetMemberAsync(Convert.ToUInt64(match.Groups[1].Value));
-                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed **{match.Groups[2].Value}** Card");
+                        var user = await args.Guild.GetMemberAsync(args.Message.MentionedUsers[0].Id);
+                        var cardName = args.Message.Content.Split("grabbed the")[1].Split("card")[0];
+                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed **{cardName}** Card (Summer 2024 🏖️)");
                     }
 
                     // Someone Grabbed a Version
-                    match = Regex.Match(args.Message.Content, VersionPattern);
-                    if (match.Success)
-                    {
-                        var user = await args.Guild.GetMemberAsync(Convert.ToUInt64(match.Groups[1].Value));
-                        await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed **{match.Groups[2].Value}** Version");
-                    }
+                    //match = Regex.Match(args.Message.Content, VersionPattern);
+                    //if (match.Success)
+                    //{
+                    //    var user = await args.Guild.GetMemberAsync(Convert.ToUInt64(match.Groups[1].Value));
+                    //    await args.Guild.GetChannel(1259881894707724389).SendMessageAsync($"**{user.Username} ({user.Nickname})** grabbed **{match.Groups[2].Value}** Version");
+                    //}
                 }
 
             }
